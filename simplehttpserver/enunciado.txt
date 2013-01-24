@@ -1,0 +1,5 @@
+Ejercicio:
+
+Armar un webserver simple con SImpleHTTPServer
+Armar un formulario de 3 preguntas usando el patron get/redirect/post, con validacion, que guarde el resultado en un archivo
+Hacer el archivo anterior accesible por GET, con implementación correcta de caching.
