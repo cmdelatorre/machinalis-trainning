@@ -7,7 +7,7 @@
 #major-area {
 	margin:auto;
 	margin-top: 15px;
-	width:980px;
+	width:968px;
 }
 
 #top-degradee {
@@ -22,16 +22,47 @@
 
 #hp-header-area {
 	background-color: black;
+	height: 60px;
 }
 
 #hp-logo {
 	height:40px;
 	width:40px;
-	margin: 3px 20px;
+	margin: 10px 0 10px 20px;
 }
 
 #location-widget {
+	padding: 10px 20px 0px;
+	color: white;
 	float: right;
+	background-color: transparent;
+}
+
+.styled-select{
+	width: 175px;
+	height: 25px;
+	overflow: hidden;
+	background: url(resources/down-arrow.png) no-repeat right #353535;
+	/*border: 1px solid #ccc;*/
+}
+
+#location-widget select {
+	background: transparent;
+	width: 200px;
+	/*padding: 5px;*/
+	color: white;
+	font-size: 12px;
+	/*line-height: 1;*/
+	border: 0;
+	border-radius: 0;
+	height: 25px;
+}
+
+#location-widget p {
+	color: white;
+	font-weight: bolder;
+	font-size: 8pt;
+	margin: 5px 0px;
 }
 
 #main-contents-area {
@@ -43,7 +74,7 @@
 #main-menu-area{
 	background-color: transparent;
 	height: 60px;
-	margin-left: 18px;
+	margin-left: 20px;
 }
 
 #main-menu{
@@ -56,29 +87,26 @@
 }
 
 .menu-item {
+	width: 145px;
+	padding: 0px 10px 0px 17px;
 	text-align: left;
 	color: white;
 	background-color: transparent;
-	float: left;
-	width: 145px;
-	padding: 10px 0px;
+	display: inline-block;
+    vertical-align: middle;
 }
 
-.menu-item-separator{
-	padding: 10px 10px;
-	color: white;
-	background-color: transparent;
-	float: left;
+.separator{
+	width:20px;
+	padding: 0px;
+	width: auto;
+	margin-left: -7px;
 }
 
-
-/*
-.menu-item:hover {
-	background-color: white;
-	color: black;
-}
-*/
 #main-menu > li:first-of-type {
+	width: 145px;
+	padding: 10px 10px;
+	text-align: left;
 	background-color: white;
 	color: black;
 }
@@ -97,67 +125,74 @@
 }
 */
 
-
-
-/*.main-content{
+.main-content{
 	background-color: white;
-}*/
-.show-main-contents{
-	height: 480px;
-	border: 0px;
-	padding: 0px;
-	margin: -2px;
+	height: 440px;
+	width: 930px;
+	margin-top: -2px;
+	margin-left: 20px;
+	padding-top: 30px;
+}
+
+#show-side-bar{
+	height: 420px;
+	width: 200px;
+	margin-left: 15px;
 	background-color: white;
+	float: left;
 }
 
 .side-bar {
-	/*height: 480px;*/
-	width: 200px;
-	border: 0px;
-	padding: 0px;
-	margin-left: 20px;
-	float: left;
 	font-size: 9pt;
-	background-color: white;
-	border: 2px solid;
-	margin-top: 20px;
+	list-style-type: none;
+	padding: 0px;
+	border: 1px solid;
+	margin: 0px;
+	height: 100%;
+	background-color: transparent;
 }
 
-.side-bar * {
+/*.sidebar-item:first-of-type {
+	background-color: #353535;
+	color: white;
+	padding: 0px 0px;
+	vertical-align: middle;
+}*/
+
+.sidebar-item{
+	margin: 0px;
+	padding: 4px;
+	border-top: 1px solid grey;
+	background-color: #D5D5D5;
+	color: black;
+	font-weight: bold;
+}
+
+.side-bar > li{
+	position: relative;
+}
+
+.side-bar > li > ul{
 	background-color: white;
 	list-style-type: none;
+	padding-left: 20px;
+	height: 100%;
 }
 
-.side-bar > li {
-	color: black;
-	background-color: #CCC;
-	font-weight: bold;
-	border: 0.5px solid #555;
+.side-bar > li > ul > li{
+	background-color: white;
+	list-style-type: none;
+	font-weight: normal;
 }
 
-.side-bar li ul {
-	display: none;
+.content{
+	height: 420px;
+	width: 680px;
+	margin-left: 10px;
+	border-top: 1px solid white;
+	float: left;
 }
 
-.side-bar > li:hover {
-	background-color: #444;
-	color: white;
-}
-
-.side-bar li:hover > ul {
-	display: block;
-}
-
-.main-content{
-	background-color: transparent;
-	margin-left: 0px;
-	margin-right: 0px;
-	padding: 0px 20px;
-}
-
-#shop-contents{
-	margin-top: 20px;
-}
 
 .news{
 	margin-left: 20px;
@@ -228,8 +263,10 @@
 
 #links{
 	font-size: 8pt;
+	margin-top: 30px;
 	border: 0px;
 	padding: 0px;
+	word-spacing: 5px;
 	text-align: center;
 }
 
@@ -247,7 +284,7 @@
 }
 
 #footer-area{
-	font-size: 8pt;
+	font-size: 9pt;
 	border: 0px;
 	padding: 30px 0px;
 	text-align: center;

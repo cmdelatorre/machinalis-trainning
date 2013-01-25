@@ -13,7 +13,17 @@
 
 			<div id="hp-header-area">
 					<img src="resources/hplogo.gif" id="hp-logo"/>
-					<img src="resources/locationwidget.png" id="location-widget"/>
+					<!--<img src="resources/locationwidget.png" id="location-widget"/>-->
+					<form action="" id="location-widget">
+						<div class="styled-select">
+							<select>
+								<option value="en-us" selected>United States-English</option>
+								<option value="es-ar">Argentina-Spanish</option>
+								<option value="kl-kl">Klingon-klingonese</option>
+							</select>
+						</div>
+						<p>Buy online or Call 800-BUY-MYHP</p>
+					</form>
 			</div>
 
 			<!-- CONTENTS AREA -->
@@ -23,36 +33,43 @@
 					<img src="resources/searchwidget.png" id="search-widget"/>
 					<ul id="main-menu">
 						<li class="menu-item">Shop for Products &amp; Services </li>
-						<li class="menu-item-separator">|</li>
+						<li class="menu-item separator">|</li>
 						<li class="menu-item">Explore &amp; Create</li>
-						<li class="menu-item-separator">|</li>
+						<li class="menu-item separator">|</li>
 						<li class="menu-item">Support &amp; Drivers</li>
-						<li class="menu-item-separator">|</li>
+						<li class="menu-item separator">|</li>
 						<li class="menu-item">Connect with others</li>
 					</ul>
 				</div>
 
 				<!-- MAIN CONTENTS -->
 				<div class="main-content" id="shop-main-contents">
-
-					<ul class="side-bar" id="shop-sidebar">
-						<li>
-							Home &amp; Home Office
-							<ul>
-								<li>Laptops &amp; Tablet PCs</li>
-								<li>Desktop &amp; All-in-one PCs</li>
-								<li>...</li>
-							</ul>
-						</li>
-						<li>Small &amp; Medium Business</li>
-						<li>...</li>
-					</ul>
-
-					<div class="show-main-contents">
-						<img src="resources/shopcontents.png" id="shop-contents"/>
+					<div id="show-side-bar">
+						<ul class="side-bar" id="shop-sidebar">
+							<li>
+								<p class="sidebar-item">Home &amp; Home Office</p>
+								<ul>
+									<li>Laptops &amp; Tablet PCs</li>
+									<li>Desktop &amp; All-in-one PCs</li>
+									<li>...</li>
+								</ul>
+							</li>
+							<li>
+								<p class="sidebar-item">Small &amp; Medium Business</p>
+							</li>
+							<li>
+								<p class="sidebar-item">Printers &amp; All-in-ones</p>
+							</li>
+						</ul>
 					</div>
 
-				</div> 
+					<div class="content" id="shop-contents">
+						 <img src="resources/shopcontents.png" id="shop-contents"/>
+					</div>
+
+
+
+				</div> <!-- shop-main-contents -->
 
 			</div> <!-- main-contents-area -->
 
