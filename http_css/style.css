@@ -111,19 +111,43 @@
 	color: black;
 }
 
+.styled-search{
+	width: 165px;
+	height: 20px;
+	overflow: hidden;
+	background: url(resources/searchicon.png) no-repeat right white;
+	/*border: 1px solid #ccc;*/
+}
+
+#search-box{
+	background: white;
+	width: 145px;
+	color: grey;
+	font-size: 11px;
+	border: 0;
+	border-radius: 0;
+	height: 20px;
+}
+
+#search-button{
+    background-color: black;
+    border: 1pt solid grey;
+    color: white;
+    font-size: 6pt;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+    float: right;
+}
 #search-widget {
 	float: right;
 	margin: 20px;
+	display: inline;
+	width: 190px;
+	background-color: transparent;
+	vertical-align: middle;
 }
-/*
-#main-contents-area{
-	height: 500px;
-	border: 0px;
-	padding: 0px;
-	margin: 0px;
-	background-color: white;
-}
-*/
+
 
 .main-content{
 	background-color: white;
