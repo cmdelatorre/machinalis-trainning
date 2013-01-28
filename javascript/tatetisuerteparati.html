@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html>
+	<header>
+		<meta charset="UTF-8">
+		<title>Ta-te-ti</title>
+		<style type="text/css">
+			.token{
+				height: 50px;
+				width: 50px;
+				margin: 0px;
+				vertical-align: middle;
+				font-size: 32pt;
+			}
+			button[data-playerA]{
+				color: red;
+			}
+			button[data-playerB]{
+				color: blue;
+			}
+		</style>
+	</header>
+
+	<body>
+		<form action="">
+			<!--First row. Top.-->
+			<div id="top-row">
+				<button id="pos_1_1" class="token" onclick="play(event)"></button>
+				<button id="pos_1_2" class="token" onclick="play(event)"></button>
+				<button id="pos_1_3" class="token" onclick="play(event)"></button>
+			</div>
+			<!--Second row. Middle.-->
+			<div id="middle-row">
+				<button id="pos_2_1" class="token" onclick="play(event)"></button>
+				<button id="pos_2_2" class="token" onclick="play(event)"></button>
+				<button id="pos_2_3" class="token" onclick="play(event)"></button>
+			</div>
+			<!--Third row. Bottom.-->
+			<div id="bottom-row">
+				<button id="pos_3_1" class="token" onclick="play(event)"></button>
+				<button id="pos_3_2" class="token" onclick="play(event)"></button>
+				<button id="pos_3_3" class="token" onclick="play(event)"></button>
+			</div>
+		</form>
+		<script src="tateticontrol.js"></script>
+	</body>
+</html>
