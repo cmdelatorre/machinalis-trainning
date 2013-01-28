@@ -49,7 +49,7 @@ function play(event){
  * Return true if the token is already taken by any player. 
  */
 function isTaken(token) {
-	return (token.innerHTML != "");
+	return $(token).html() != "";
 }
 
 /**
@@ -62,8 +62,8 @@ function markCurrent(token){
 		player = playerBCustomAttr;
 		mark = "X";
 	}
-	token.innerHTML = mark;
-	token.setAttribute(player, true);
+	$(token).html(mark);
+	$(token).attr(player, true);
 }
 
 /**
@@ -76,13 +76,12 @@ function checkWinner(){
 		is_winner = true;
 		for(j=0; j<3 && is_winner;j++){
 			token = document.getElementById(successCases[i][j]);
-			is_winner = is_winner &&  token.hasAttribute(currentPlayer);
+			is_winner = is_winner &&  $(token).attr(currentPlayer);
 		}
 		if (is_winner) {
 			// Mark the winning tokens and return true.
 			for(j=0; j<3 && is_winner;j++){
-				token = document.getElementById(successCases[i][j]);
-				token.setAttribute(winnerCustomAttr, true);
+				$("#"+successCases[i][j]).attr(winnerCustomAttr, true);
 			}
 			break;
 		}
@@ -109,8 +108,9 @@ function changePlayer(){
  * Identify the current player, and its token, in the document's given area.
  */
 function displayCurrentPlayer(){
-	document.getElementById("current_player").innerHTML = 
-			getCurrentPlayerName() + " ("+getCurrentPlayerDisplayToken()+")";
+	$("#current_player").html(getCurrentPlayerName() + " ("+getCurrentPlayerDisplayToken()+")")
+	/*document.getElementById("current_player").innerHTML = 
+			getCurrentPlayerName() + " ("+getCurrentPlayerDisplayToken()+")";*/
 }
 
 /**
