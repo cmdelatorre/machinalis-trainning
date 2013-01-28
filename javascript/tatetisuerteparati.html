@@ -11,17 +11,27 @@
 				vertical-align: middle;
 				font-size: 32pt;
 			}
-			button[data-playerA]{
+
+			*[data-playerA]{
+				font-weight: bold;
 				color: red;
 			}
-			button[data-playerB]{
+
+			*[data-playerB]{
+				font-weight: bold;
 				color: blue;
+			}
+			*[data-winner]{
+				font-weight: bolder;
+				color: green;
+				text-decoration: blink;
 			}
 		</style>
 	</header>
 
 	<body>
-		<form action="">
+		<div id="board">
+			<h1 id="player_info"> Current player: <span id="current_player"/></h1>
 			<!--First row. Top.-->
 			<div id="top-row">
 				<button id="pos_1_1" class="token" onclick="play(event)"></button>
@@ -40,7 +50,11 @@
 				<button id="pos_3_2" class="token" onclick="play(event)"></button>
 				<button id="pos_3_3" class="token" onclick="play(event)"></button>
 			</div>
-		</form>
+
+			<form action="">
+				<button id="resetButton" onclick="reset(event)">Reset</button>
+			</form>
+		</div>
 		<script src="tateticontrol.js"></script>
 	</body>
 </html>
