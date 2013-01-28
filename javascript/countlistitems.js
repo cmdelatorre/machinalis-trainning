@@ -8,40 +8,20 @@ function countItems(aList){
 	return cntr;
 }
 
-function renderResults(nItems){
-	return "<span style='color:red'>["+nItems+"]</span>";
+function appendResults(targetElem, nItems){
+	var results = document.createElement('span');
+	results.setAttribute("style", "color:red");
+	results.appendChild(document.createTextNode(nItems));
+	targetElem.insertBefore(results, targetElem.firstChild);
 }
 
-console.log("carga");
+
+/**
+ * Main
+ */
 allTheLists = document.getElementsByTagName("ul");
-console.log("Corre sobre:"+allTheLists.length);
 for (j=0; j<allTheLists.length; j++){
-	var current = allTheLists[j];
-	console.log("Probando el nodo"+current)
-	var nItems = countItems(current);
-	console.log(nItems);
-	for (k=0; j<current.childNodes.length; k++){
-		textNode = current.childNodes[k];
-
-		if (textNode.nodeType == 3 && textNode != ""){
-			console.log(textNode + renderResults(nItems));
-			textNode.innerHTML += renderResults(nItems);
-			break;
-		}
+		currentList = allTheLists[j];
+		nItems = countItems(currentList);
+		appendResults(currentList, nItems);  
 	}
-
-/*
-
-
-	elementHTML = current.innerHTML
-	//console.log(current.innerHTML);
-	newLineCharPosition = elementHTML.indexOf("\n");
-	console.log(elementHTML);
-	console.log(newLineCharPosition);
-	if (newLineCharPosition != -1){
-		prefix = elementHTML.substr(0,newLineCharPosition);
-		suffix = elementHTML.substr(newLineCharPosition);
-	}
-	current.innerHTML = 
-			prefix + renderResults(nItems) + suffix;*/
-}
