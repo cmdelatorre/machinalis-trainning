@@ -1,0 +1,9 @@
+{% if choices %}
+    <ul>
+    {% for c in choices %}
+        <li>{{ c.choice }}: {{ c.votes }} </a></li>
+    {% endfor %}
+    </ul>
+    {% else %}
+    <p>No hay opciones.</p>
+{% endif %}

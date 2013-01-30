@@ -1,0 +1,22 @@
+{% load url from future %}
+<html>
+<head><title>Lo último en encuestas!</title></head>
+<body>
+    {% if latest_poll_list %}
+        <ul>
+        {% for poll in latest_poll_list %}
+            <li>
+                <a href="{% url 'polls:detail' poll_id=poll.id %}">{{ poll.question }}</a>
+
+                {% with choices=poll.choice_set.all %}
+                    {% include "polls/listchoices.html" %}
+                {% endwith %}
+
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay encuestas.</p>
+    {% endif %}
+</body>
+</html>

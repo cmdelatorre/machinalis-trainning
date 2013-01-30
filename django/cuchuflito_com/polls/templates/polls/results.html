@@ -1,0 +1,12 @@
+{% load url from future %}
+<html>
+<head><title>Results for: {{ poll.question }}</title></head>
+<body>
+    <h1>Results for: {{ poll.question }}</h1>
+
+    {% include "polls/listchoices.html" %}
+
+    <p><a href="{% url 'polls:index' %}">Volver al home...</a></p>
+</body>
+</html>
+
