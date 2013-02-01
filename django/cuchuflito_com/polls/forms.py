@@ -15,6 +15,8 @@ class VoteForm(forms.Form):
 
 
 class NewChoiceForm(forms.ModelForm):
+    choice = forms.CharField(label="new choice", max_length=200)
+
     class Meta:
         model = Choice
         fields = ('choice',)
