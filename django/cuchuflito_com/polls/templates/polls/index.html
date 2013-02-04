@@ -1,27 +1,17 @@
 {% extends "polls/base.html" %}
 {% load url from future %}
 {% block content %}
-    {% if latest_poll_list %}
-        <div class="hero-unit">
-        <h1>Latest Polls!</h1>
-        <p>Listed below ... bla bla bla...</p>
-        <p><a class="btn btn-primary btn-large" href="{% url 'polls:archive' %}">Go the archive &raquo;</a></p>
 
-        </div>        
-        <div class="row">
-        {% for poll in latest_poll_list %}    
-            <div class="span3">
-                <a href="{% url 'polls:detail' poll_id=poll.id %}">{{ poll.question }}</a>
-                <p class="muted">
-                    <small>
-                        ({{ poll.pub_date }})
-                    </small>
-                </p>
-                {% include "polls/listchoices.html" with choices=poll.choice_set.all%}
-                </div>
-        {% endfor %}
-        </div>
-    {% else %}
-        <p>No hay encuestas.</p>
-    {% endif %}
+<div class="hero-unit">
+    <h1>Cuchuflito's polls!</h1>
+    <p>Everybody has something to say about cuchulitos. Something <em>different</em> to say.</p>
+    <p>Navigate the polls and vote for your favorite answers. Find out if what you think of the cuchuflitos is what other people also think!.</p>
+    
+    <p>
+        <a class="btn btn-primary btn-large" href="{% url 'polls:archive' %}">
+            Go to the archive &raquo;
+        </a>
+    </p>
+</div>
+
 {% endblock %}

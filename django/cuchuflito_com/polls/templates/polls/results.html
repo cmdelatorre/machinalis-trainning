@@ -1,12 +1,13 @@
+{% extends "polls/base.html" %}
 {% load url from future %}
-<html>
-<head><title>Results for: {{ poll.question }}</title></head>
-<body>
-    <h1>Results for: {{ poll.question }}</h1>
+{% load bootstrap_toolkit %}
+{% block content %}
 
-    {% include "polls/listchoices.html" with choices=poll.choice_set.all %}
+<h2>Results for:</h2>
+<h1>{{ poll.question }}</h1>
 
-    <p><a href="{% url 'polls:index' %}">Volver al home...</a></p>
-</body>
-</html>
+{% include "polls/listchoices.html" with choices=poll.choice_set.all %}
 
+<p>Poll posted on: {{poll.pub_date|date}}</p>
+
+{% endblock %}

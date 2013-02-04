@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponseNotAllowed
 
 from django.views.generic import ListView, DetailView, FormView, CreateView
-from django.views.generic.dates import YearArchiveView
+from django.views.generic.dates import ArchiveIndexView, YearArchiveView
 
 from polls.models import Poll, Choice
 from polls.forms import VoteForm, NewChoiceForm
@@ -97,28 +97,19 @@ def add_choice(request, poll_id):
 #                 }
 #         return render(self.request, 'polls/detail.html', context)
 
-from django.views.generic.dates import YearArchiveView
-
 class PollsYearArchiveView(YearArchiveView):
     queryset = Poll.objects.all()
     date_field = "pub_date"
     make_object_list = True
     allow_future = True
+    allow_empty = True
+    paginate_by = 10
 
-    def get_year(self):
-        """Return the year for which this view should display data.
 
-        Overwrite to set to current year if none given.
-        """
-        year = self.year
-        if year is None:
-            try:
-                year = self.kwargs['year']
-            except KeyError:
-                try:
-                    year = self.request.GET['year']
-                except KeyError:
-                    #raise Http404(_(u"No year specified"))
-                    year = datetime.now().year
+class PollsArchiveView(ArchiveIndexView):
+    queryset = Poll.objects.all()
+    date_field = "pub_date"
+    allow_future = True
+    allow_empty = True
+    paginate_by = 10
 
-        return year

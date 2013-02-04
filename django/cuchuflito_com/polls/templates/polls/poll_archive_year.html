@@ -1,23 +1,36 @@
 {% extends "polls/base.html" %}
 {% load url from future %}
 {% block content %}
-
-<ul>
-    {% for date in date_list %}
-        <li>{{ date|date:"Y" }}</li>
-    {% endfor %}
-</ul>
-
 <div>
     <h1>All the polls for the year {{ year }}</h1>
-    {% for obj in object_list %}
+    {% for poll in object_list %}
         <p>
-            <a href="{% url 'polls:results' poll_id=obj.id %}">{{ obj.question }}</a>
+            <em>{{ poll.question }}</em>
             <small class="muted">
-                ({{ obj.pub_date|date:"F j, Y" }})
+                ({{ poll.pub_date|date:"F j, Y" }})
+            </small>
+            <small>
+            <a href="{% url 'polls:detail' poll_id=poll.id %}">Vote</a> | 
+            <a href="{% url 'polls:results' poll_id=poll.id %}">View results</a>
             </small>
         </p>
     {% endfor %}
+</div>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?year={{ year }};page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?year={{ year }};page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </span>
 </div>
 
 {% endblock %}

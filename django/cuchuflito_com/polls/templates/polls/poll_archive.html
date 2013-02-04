@@ -1,0 +1,34 @@
+{% extends "polls/base.html" %}
+{% load url from future %}
+{% load bootstrap_toolkit %}
+{% block content %}
+
+<div class="container">
+    <div class="hero-unit">
+        <h2>Select a year</h2>
+        <ul class="inline nav">
+        {% for date in date_list %}
+            <li>
+                <a href="{% url 'polls:archive_year' %}?year={{ date|date:"Y" }}">{{ date|date:"Y" }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<h3>Latest polls...</h3>
+
+<div class="row">
+{% for poll in latest %}
+    <div class="span3">
+        <a href="{% url 'polls:detail' poll_id=poll.id %}">{{ poll.question }}</a><br/>
+        <small class="muted">
+            ({{ poll.pub_date }})
+        </small>
+        {% include "polls/listchoices.html" with choices=poll.choice_set.all%}
+    </div>
+{% endfor %}
+</div>
+
+
+{% endblock %}
