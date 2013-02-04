@@ -111,6 +111,7 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'polls',
+    'bootstrap_toolkit',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

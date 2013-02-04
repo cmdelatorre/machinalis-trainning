@@ -1,7 +1,7 @@
+{% extends "polls/base.html" %}
 {% load url from future %}
-<html>
-<head><title>{{ poll.question }}</title></head>
-<body>
+{% load bootstrap_toolkit %}
+{% block content %}
     <h1>{{ poll.question }}</h1>
 
     {% if error_message %}
@@ -11,17 +11,22 @@
     <form action="{% url 'polls:vote' poll_id=poll.id %}"
           method="post">
         {% csrf_token %}
-        {{ voting_form.as_p }}
-        <input type="submit" value="Vote" />
+        {% for c in voting_form.choice %}
+        <div class="radio">
+            {{ c }}
+        </div>
+        {% endfor %}
+
+        <input class="btn" type="submit" value="Vote" />
     </form>
 
     <form action="{% url 'polls:add_choice' poll_id=poll.id %}"
+          class="form-inline"
           method="post">
         {% csrf_token %}
         {{ new_choice_form.as_p }}
-        <input type="submit" value="Add choice" />
+        <input class="btn" type="submit" value="Add choice" />
     </form>
 
-</body>
-</html>
+{% endblock %}
 

@@ -1,0 +1,23 @@
+{% extends "polls/base.html" %}
+{% load url from future %}
+{% block content %}
+
+<ul>
+    {% for date in date_list %}
+        <li>{{ date|date:"Y" }}</li>
+    {% endfor %}
+</ul>
+
+<div>
+    <h1>All the polls for the year {{ year }}</h1>
+    {% for obj in object_list %}
+        <p>
+            <a href="{% url 'polls:results' poll_id=obj.id %}">{{ obj.question }}</a>
+            <small class="muted">
+                ({{ obj.pub_date|date:"F j, Y" }})
+            </small>
+        </p>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,22 +1,27 @@
+{% extends "polls/base.html" %}
 {% load url from future %}
-<html>
-<head><title>Lo último en encuestas!</title></head>
-<body>
+{% block content %}
     {% if latest_poll_list %}
-        <ul>
-        {% for poll in latest_poll_list %}
-            <li>
+        <div class="hero-unit">
+        <h1>Latest Polls!</h1>
+        <p>Listed below ... bla bla bla...</p>
+        <p><a class="btn btn-primary btn-large" href="{% url 'polls:archive' %}">Go the archive &raquo;</a></p>
+
+        </div>        
+        <div class="row">
+        {% for poll in latest_poll_list %}    
+            <div class="span3">
                 <a href="{% url 'polls:detail' poll_id=poll.id %}">{{ poll.question }}</a>
-
-                {% with choices=poll.choice_set.all %}
-                    {% include "polls/listchoices.html" %}
-                {% endwith %}
-
-            </li>
+                <p class="muted">
+                    <small>
+                        ({{ poll.pub_date }})
+                    </small>
+                </p>
+                {% include "polls/listchoices.html" with choices=poll.choice_set.all%}
+                </div>
         {% endfor %}
-        </ul>
+        </div>
     {% else %}
         <p>No hay encuestas.</p>
     {% endif %}
-</body>
-</html>
+{% endblock %}
