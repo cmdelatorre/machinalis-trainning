@@ -58,10 +58,50 @@ class PollResults(DetailView):
     template_name = "polls/results.html"
 
 
-class NewPoll(CreateView):
-    form_class = NewPollForm
-    model = Poll
+def new_poll(request):
+    if request.method == 'POST':
+        form = NewPollForm(request.POST)
+        if request.POST["save"] == 'Add choice':
+            if request.POST['new_choice']:
+                form.choices.append(request.POST['new_choice'])
+                data = {
+                    'question':request.POST['question'],
+                    'pub_date':request.POST['pub_date'],
+                    'choices': form.choices,
+                    'new_choice':''
+                    }
+                form = NewPollForm(data)
+        elif request.POST["save"] == 'Save poll':
+            if form.is_valid():
+                poll = Poll(
+                        question=form.cleaned_data['question'],
+                        pub_date=form.cleaned_data['pub_date']
+                        )
+                poll.save()
+                for c in form.choices:
+                    poll.choice_set.create(choice=c)
+                form.choices = []
+                return redirect('polls:detail', poll.id)
+        else:
+            return Http404()
+    else:
+        form = NewPollForm()
+    context = {'form': form, 'choices':form.choices}
+    return render(request, 'polls/poll_form.html', context)
 
+# class NewPoll(CreateView):
+#     form_class = NewPollForm
+#     model = Poll
+#     http_method_names = ['post', 'get']
+
+#     def get_form(self, form_class):
+#         return NewPollForm(self.request.POST)
+
+#     def form_valid(self, form):
+#         return Http404()
+
+#     def form_invalid(self, form):
+#         return Http404
 
 
 class ChoiceAdd(CreateView):

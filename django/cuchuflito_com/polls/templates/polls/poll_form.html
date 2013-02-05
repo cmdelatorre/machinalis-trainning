@@ -5,13 +5,35 @@
     <h1>New Poll</h1>
 
     <form action="{% url 'polls:new_poll' %}"
-          class="form-horizontal"
           method="post">
         {% csrf_token %}
         <div class="control-group">
-            {{ form.as_p }}
+            {{ form.question.errors }}
+            {{ form.question.label_tag }}
+            {{ form.question }}
         </div>
-        <input class="btn" type="submit" value="Save poll and add choices" />
+        <div class="control-group">
+            {{ form.pub_date.errors }}
+            {{ form.pub_date.label_tag }}
+            {{ form.pub_date }}
+        </div>
+
+        <div class="control-group">
+            <ul>
+                {% for choice in form.choices%}
+                <li>{{ choice }}</li>
+                {% endfor %}
+            </ul>
+            <p>
+                {{ form.new_choice.label_tag }}
+                {{ form.new_choice }}
+                <input type="submit" name="save" value="Add choice" class="btn"></input>
+            </p>
+        </div>
+        
+        <p>
+            <input type="submit" name="save" value="Save poll" class="btn btn-primary btn-large"></input>
+        </p>
     </form>
 
 {% endblock %}

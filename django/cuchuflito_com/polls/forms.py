@@ -1,4 +1,7 @@
+import datetime
+
 from django import forms
+
 from polls.models import Poll, Choice
 
 class VoteForm(forms.Form):
@@ -14,9 +17,11 @@ class VoteForm(forms.Form):
         self.fields['choice'].queryset = poll.choice_set.all()
 
 
-class NewPollForm(forms.ModelForm):
-    class Meta:
-        model = Poll
+class NewPollForm(forms.Form):
+    question = forms.CharField(max_length=200)
+    pub_date = forms.DateTimeField(label='date published', initial=datetime.datetime.now())
+    new_choice = forms.CharField(max_length=200, required=False, help_text='A new choice for this poll. 200 characters max.')
+    choices = []
 
 
 class NewChoiceForm(forms.ModelForm):
