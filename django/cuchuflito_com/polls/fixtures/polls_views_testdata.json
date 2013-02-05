@@ -3,7 +3,7 @@
         "pk": 1, 
         "model": "polls.poll", 
         "fields": {
-            "pub_date": "2011-04-09 23:44:02", 
+            "pub_date": "2011-04-09 23:44:02-03:00", 
             "question": "Are you learning about testing in Django?"
         }
     }, 

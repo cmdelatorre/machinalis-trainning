@@ -2,13 +2,13 @@
 from datetime import datetime
 
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponseNotAllowed
+from django.http import HttpResponseNotAllowed, Http404
 
 from django.views.generic import ListView, DetailView, FormView, CreateView
 from django.views.generic.dates import ArchiveIndexView, YearArchiveView
 
 from polls.models import Poll, Choice
-from polls.forms import VoteForm, NewChoiceForm
+from polls.forms import VoteForm, NewPollForm, NewChoiceForm
 
 NPOLLSININDEX = 4
 
@@ -58,11 +58,18 @@ class PollResults(DetailView):
     template_name = "polls/results.html"
 
 
+class NewPoll(CreateView):
+    form_class = NewPollForm
+    model = Poll
+
+
+
 class ChoiceAdd(CreateView):
     form_class = NewChoiceForm
     model = Choice
     template_name = 'polls:detail'
     pk_url_kwarg = 'poll_id'
+    http_method_names = ['post']
 
     def get_form(self, form_class):
         self.poll = get_object_or_404(Poll, pk=self.kwargs['poll_id'])
@@ -82,6 +89,14 @@ class ChoiceAdd(CreateView):
         return render(self.request, 'polls/detail.html', context)
 
 
+class PollsArchiveView(ArchiveIndexView):
+    queryset = Poll.objects.all()
+    date_field = "pub_date"
+    allow_future = True
+    allow_empty = True
+    paginate_by = 10
+
+
 class PollsYearArchiveView(YearArchiveView):
     queryset = Poll.objects.all()
     date_field = "pub_date"
@@ -90,11 +105,11 @@ class PollsYearArchiveView(YearArchiveView):
     allow_empty = True
     paginate_by = 10
 
-
-class PollsArchiveView(ArchiveIndexView):
-    queryset = Poll.objects.all()
-    date_field = "pub_date"
-    allow_future = True
-    allow_empty = True
-    paginate_by = 10
-
+    def get_year(self):
+        "Overwrite to check the case the 'year' parameter is not an integer."
+        year = super(YearArchiveView, self).get_year()
+        try:
+            int(year)
+        except ValueError:
+            raise Http404(u"Year badly specified: not a number.")
+        return year

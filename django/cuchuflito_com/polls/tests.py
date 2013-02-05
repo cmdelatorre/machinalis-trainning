@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import datetime
+
 from django.test import TestCase
+from django.utils import timezone
+
 from polls.models import Poll, Choice
 
 
@@ -10,9 +13,14 @@ class PollsViewsTestCase(TestCase):
     def test_index(self):
         resp = self.client.get('/polls/')
         self.assertEqual(resp.status_code, 200)
-        self.assertTrue('latest_poll_list' in resp.context)
-        self.assertEqual([poll.pk for poll in resp.context['latest_poll_list']], [1])
-        poll_1 = resp.context['latest_poll_list'][0]
+
+    def test_archive_index(self):
+        resp = self.client.get('/polls/archive/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('latest' in resp.context)
+        # Only the correct poll is included in the context 
+        self.assertEqual([poll.pk for poll in resp.context['latest']], [1])
+        poll_1 = resp.context['latest'][0]
         self.assertEqual(poll_1.question, 'Are you learning about testing in Django?')
         self.assertEqual(poll_1.choice_set.count(), 2)
         choices = poll_1.choice_set.all()
@@ -20,6 +28,50 @@ class PollsViewsTestCase(TestCase):
         self.assertEqual(choices[0].votes, 1)
         self.assertEqual(choices[1].choice, 'No')
         self.assertEqual(choices[1].votes, 0)
+        # The right set of dates is provided in the context
+        self.assertTrue('date_list' in resp.context)
+        self.assertEqual(len(resp.context['date_list']), 1)
+        self.assertEqual(resp.context['date_list'][0].year, 2011)
+
+    def test_archive_index_noPOST(self):
+        resp = self.client.post('/polls/archive/')
+        self.assertEqual(resp.status_code, 405)
+
+    def test_archive_year(self):
+        resp = self.client.get('/polls/archive_year/?year=2011')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('year' in resp.context)
+        self.assertEqual(resp.context['year'], u'2011')
+        self.assertTrue('object_list' in resp.context)
+        # Only the correct poll is included in the context 
+        self.assertEqual([poll.pk for poll in resp.context['object_list']], [1])
+        poll_1 = resp.context['object_list'][0]
+        self.assertEqual(poll_1.question, 'Are you learning about testing in Django?')
+        self.assertEqual(poll_1.choice_set.count(), 2)
+        choices = poll_1.choice_set.all()
+        self.assertEqual(choices[0].choice, 'Yes')
+        self.assertEqual(choices[0].votes, 1)
+        self.assertEqual(choices[1].choice, 'No')
+        self.assertEqual(choices[1].votes, 0)
+        # Inexistent year works.
+        resp = self.client.get('/polls/archive_year/?year=1982')
+        self.assertEqual(resp.status_code, 200)
+        # Future year works.
+        resp = self.client.get('/polls/archive_year/?year=2082')
+        self.assertEqual(resp.status_code, 200)
+
+    def test_archive_year_bad_request(self):
+        # No POST
+        resp = self.client.post('/polls/archive_year/?year=2011')
+        self.assertEqual(resp.status_code, 405)
+        # Missing year parameter
+        resp = self.client.get('/polls/archive_year/')
+        self.assertEqual(resp.status_code, 404)
+        resp = self.client.get('/polls/archive_year/?year=')
+        self.assertEqual(resp.status_code, 404)
+        # Wrong year.
+        resp = self.client.get('/polls/archive_year/?year=perro')
+        self.assertEqual(resp.status_code, 404)
 
     def test_detail(self):
         resp = self.client.get('/polls/1/')
@@ -28,7 +80,6 @@ class PollsViewsTestCase(TestCase):
         self.assertEqual(resp.context['voting_form'].errors, {})
         self.assertEqual(resp.context['poll'].pk, 1)
         self.assertEqual(resp.context['poll'].question, 'Are you learning about testing in Django?')
-        
         # Ensure that non-existent polls throw a 404.
         resp = self.client.get('/polls/2/')
         self.assertEqual(resp.status_code, 404)
@@ -38,7 +89,6 @@ class PollsViewsTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context['poll'].pk, 1)
         self.assertEqual(resp.context['poll'].question, 'Are you learning about testing in Django?')
-        
         # Ensure that non-existent polls throw a 404.
         resp = self.client.get('/polls/2/results/')
         self.assertEqual(resp.status_code, 404)

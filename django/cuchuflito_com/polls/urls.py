@@ -9,5 +9,6 @@ urlpatterns = patterns('',
     url(r'^(?P<poll_id>\d+)/$', views.PollDetail.as_view(), name='detail'),
     url(r'^(?P<poll_id>\d+)/results/$', views.PollResults.as_view(), name='results'),
     url(r'^(?P<poll_id>\d+)/vote/$', views.PollVote.as_view(), name='vote'),
+    url(r'^new_poll/$', views.NewPoll.as_view(), name='new_poll'),
     url(r'^(?P<poll_id>\d+)/add_choice/$', views.ChoiceAdd.as_view(), name='add_choice'),
 )

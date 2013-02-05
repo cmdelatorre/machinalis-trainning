@@ -4,21 +4,19 @@
 {% block content %}
     <h1>{{ poll.question }}</h1>
 
-    {% if error_message %}
-        <p><strong>{{ error_message }}</strong></p>
-    {% endif %}
+    {% if voting_form.choice %}
+        <form action="{% url 'polls:vote' poll_id=poll.id %}"
+              method="post">
+            {% csrf_token %}
+            {% for c in voting_form.choice %}
+            <div class="radio">
+                {{ c }}
+            </div>
+            {% endfor %}
 
-    <form action="{% url 'polls:vote' poll_id=poll.id %}"
-          method="post">
-        {% csrf_token %}
-        {% for c in voting_form.choice %}
-        <div class="radio">
-            {{ c }}
-        </div>
-        {% endfor %}
-
-        <input class="btn" type="submit" value="Vote" />
-    </form>
+            <input class="btn" type="submit" value="Vote" />
+        </form>
+    {%endif%}
 
     <form action="{% url 'polls:add_choice' poll_id=poll.id %}"
           class="form-inline"

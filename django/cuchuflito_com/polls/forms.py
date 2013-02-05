@@ -1,5 +1,5 @@
 from django import forms
-from polls.models import Choice
+from polls.models import Poll, Choice
 
 class VoteForm(forms.Form):
     choice = forms.ModelChoiceField(
@@ -12,6 +12,11 @@ class VoteForm(forms.Form):
         poll = kwargs.pop('poll')
         super(VoteForm, self).__init__(*args, **kwargs)
         self.fields['choice'].queryset = poll.choice_set.all()
+
+
+class NewPollForm(forms.ModelForm):
+    class Meta:
+        model = Poll
 
 
 class NewChoiceForm(forms.ModelForm):
