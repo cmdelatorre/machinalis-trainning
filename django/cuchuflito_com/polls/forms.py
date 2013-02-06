@@ -18,9 +18,17 @@ class VoteForm(forms.Form):
 
 
 class NewPollForm(forms.Form):
-    question = forms.CharField(max_length=200)
+    question = forms.CharField(
+            max_length=200, 
+            error_messages={'required': u"Question can't be empty."}
+        )
     pub_date = forms.DateTimeField(label='date published', initial=datetime.datetime.now())
-    new_choice = forms.CharField(max_length=200, required=False, help_text='A new choice for this poll. 200 characters max.')
+    new_choice = forms.CharField(
+            max_length=200, 
+            required=False, 
+            help_text='A new choice for this poll. 200 characters max.',
+            error_messages={'required': u"Choice can't be empty."}
+        )
 
 
 class NewChoiceForm(forms.ModelForm):

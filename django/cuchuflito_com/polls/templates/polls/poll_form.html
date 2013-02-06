@@ -15,13 +15,23 @@
             {{ form.question }}
         </div>
 
+        <div class="control-group">
+            {{ form.pub_date.errors }}
+            <label for="id_pub_date" class="control-label">pub_date </label>
+            {{ form.pub_date }}
+        </div>
 
         <h4>Choices</h4>
-        <div class="control-group">
-
+        <div>
+            <ul class="nav nav-tabs nav-stacked">
                 {% for choice in the_choices%}
-                    <input type="text" name="a_choice" value="{{ choice }}">{{ choice }}</input> 
+                    
+                    <li>
+                        <input type="hidden" name="a_choice" value="{{ choice }}"/>
+                        <a href="#">{{ choice }}</a>
+                    </li>
                 {% endfor %}
+            </ul>
 
             <p>
                 {{ form.new_choice }}
