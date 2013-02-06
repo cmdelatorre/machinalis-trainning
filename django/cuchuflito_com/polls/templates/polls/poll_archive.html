@@ -22,11 +22,11 @@
 <div class="row">
 {% for poll in latest %}
     <div class="span3">
-        <a href="{% url 'polls:detail' poll_id=poll.id %}">{{ poll.question }}</a><br/>
+        <a href="{% url 'polls:results' poll_id=poll.id %}">{{ poll.question }}</a><br/>
         <small class="muted">
             ({{ poll.pub_date }})
         </small>
-        {% include "polls/listchoices.html" with choices=poll.choice_set.all%}
+        {% include "polls/listchoices.html" with choices=poll.get_ordered_choices%}
     </div>
 {% endfor %}
 </div>

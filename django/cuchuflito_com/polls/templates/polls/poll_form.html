@@ -2,30 +2,28 @@
 {% load url from future %}
 {% load bootstrap_toolkit %}
 {% block content %}
+<div class="hero-unit">
     <h1>New Poll</h1>
 
     <form action="{% url 'polls:new_poll' %}"
-          method="post">
+          method="post"
+          class="form-horizontal">
         {% csrf_token %}
         <div class="control-group">
             {{ form.question.errors }}
-            {{ form.question.label_tag }}
+            <label for="id_question" class="control-label">Question </label>
             {{ form.question }}
         </div>
-        <div class="control-group">
-            {{ form.pub_date.errors }}
-            {{ form.pub_date.label_tag }}
-            {{ form.pub_date }}
-        </div>
 
+
+        <h4>Choices</h4>
         <div class="control-group">
-            <ul>
-                {% for choice in form.choices%}
-                <li>{{ choice }}</li>
+
+                {% for choice in the_choices%}
+                    <input type="text" name="a_choice" value="{{ choice }}">{{ choice }}</input> 
                 {% endfor %}
-            </ul>
+
             <p>
-                {{ form.new_choice.label_tag }}
                 {{ form.new_choice }}
                 <input type="submit" name="save" value="Add choice" class="btn"></input>
             </p>
@@ -35,6 +33,6 @@
             <input type="submit" name="save" value="Save poll" class="btn btn-primary btn-large"></input>
         </p>
     </form>
-
+</div>
 {% endblock %}
 

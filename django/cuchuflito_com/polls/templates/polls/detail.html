@@ -2,29 +2,36 @@
 {% load url from future %}
 {% load bootstrap_toolkit %}
 {% block content %}
-    <h1>{{ poll.question }}</h1>
+<div class="hero-unit">
+<h1>{{ poll.question }}</h1>
 
-    {% if voting_form.choice %}
-        <form action="{% url 'polls:vote' poll_id=poll.id %}"
-              method="post">
-            {% csrf_token %}
-            {% for c in voting_form.choice %}
-            <div class="radio">
-                {{ c }}
-            </div>
-            {% endfor %}
 
-            <input class="btn" type="submit" value="Vote" />
-        </form>
-    {%endif%}
+{{ voting_form.choice.errors }}
+{% if voting_form.choice %}
+            <form action="{% url 'polls:vote' poll_id=poll.id %}"
+                  method="post">
+                {% csrf_token %}
+                {% for c in voting_form.choice %}
+                <div class="radio">
+                    {{ c }}
+                </div>
+                {% endfor %}                
+                <input class="btn btn-primary btn-large" type="submit" value="Vote" />
+            </form>
+{%endif%} 
 
+    {{ new_choice_form.choice.errors }}
     <form action="{% url 'polls:add_choice' poll_id=poll.id %}"
           class="form-inline"
           method="post">
         {% csrf_token %}
-        {{ new_choice_form.as_p }}
-        <input class="btn" type="submit" value="Add choice" />
+        <div class="input-append">
+          {{ new_choice_form.choice }}
+          <button class="btn" type="submit" value="Add choice">Add choice</button>
+        </div>
     </form>
+
+</div>
 
 {% endblock %}
 

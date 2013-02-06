@@ -38,6 +38,7 @@ class PollVote(FormView):
 
     def get_form(self, form_class):
         self.poll = get_object_or_404(Poll, pk=self.kwargs['poll_id'])
+        print self.request.POST
         return VoteForm(self.request.POST, poll=self.poll)
 
     def form_valid(self, form):
@@ -59,18 +60,20 @@ class PollResults(DetailView):
 
 
 def new_poll(request):
+    the_choices = []
     if request.method == 'POST':
         form = NewPollForm(request.POST)
+        print request.POST.items()
         if request.POST["save"] == 'Add choice':
+            data = {}
+            for f in ['question', 'pub_date']:
+                data[f] = request.POST.get(f, '')
+            the_choices = request.POST.getlist('a_choice', [])
             if request.POST['new_choice']:
-                form.choices.append(request.POST['new_choice'])
-                data = {
-                    'question':request.POST['question'],
-                    'pub_date':request.POST['pub_date'],
-                    'choices': form.choices,
-                    'new_choice':''
-                    }
-                form = NewPollForm(data)
+                the_choices.append(request.POST['new_choice'])
+            data['choices'] = the_choices
+            data['new_choice'] = ''
+            form = NewPollForm(data)
         elif request.POST["save"] == 'Save poll':
             if form.is_valid():
                 poll = Poll(
@@ -78,15 +81,18 @@ def new_poll(request):
                         pub_date=form.cleaned_data['pub_date']
                         )
                 poll.save()
-                for c in form.choices:
+                for c in request.POST.getlist('a_choice', []):
                     poll.choice_set.create(choice=c)
                 form.choices = []
                 return redirect('polls:detail', poll.id)
+            else:
+                print "Dice que no vale"
         else:
             return Http404()
     else:
         form = NewPollForm()
-    context = {'form': form, 'choices':form.choices}
+        form.choices = []
+    context = {'form': form, 'the_choices':the_choices}
     return render(request, 'polls/poll_form.html', context)
 
 # class NewPoll(CreateView):

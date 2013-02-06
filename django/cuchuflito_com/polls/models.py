@@ -2,11 +2,12 @@ import datetime
 from django.db import models
 from django.utils import timezone
 from django.core.urlresolvers import reverse
+from django.db.models import Max
 
 class Poll(models.Model):
 	"""A poll about cuchuflitos."""
 	question = models.CharField(max_length=200)
-	pub_date = models.DateTimeField("date published", default=datetime.datetime.now())
+	pub_date = models.DateTimeField("date published", default=datetime.datetime.now)
 
 	def was_published_recently(self):
 		"""Return true if the poll was created from yesterday, afterwards."""
@@ -21,6 +22,15 @@ class Poll(models.Model):
 	def get_absolute_url(self):
 		return reverse('polls:detail', kwargs={'poll_id': self.id})
 
+	def has_winners(self):
+		"""Return the choices with more votes than the rest."""
+		voted_choices = self.choice_set.filter(votes__gt=0).order_by('-votes')
+		M = voted_choices.aggregate(max=Max('votes'))['max']
+		return voted_choices.filter(votes=M)
+
+	def get_ordered_choices(self):
+		"""Most voted choices, first."""
+		return self.choice_set.order_by('-votes')
 
 class Choice(models.Model):
 	poll = models.ForeignKey(Poll) 
