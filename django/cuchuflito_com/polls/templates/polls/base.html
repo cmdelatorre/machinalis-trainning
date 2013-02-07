@@ -32,11 +32,27 @@
                         Cuchuflito's Polls <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="{% url 'polls:index' %}" class="">Home</a></li>
-                        <li><a href="{% url 'polls:new_poll' %}">New poll</a></li>
-                        <li><a href="{% url 'polls:archive' %}">Archive</a></li>
+                        <li>
+                            <a href="{% url 'polls:index' %}" class="">
+                                <i class="icon-home"></i> Home
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'polls:new_poll' %}">
+                                <i class="icon-plus-sign"></i> New poll
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'polls:archive' %}">
+                                <i class="icon-folder-open"></i> Archive
+                            </a>
+                        </li>
                         <li class="divider"/>
-                        <li><a href="mailto:cmdelatorre@gmail.com">Contact</a></li>
+                        <li>
+                            <a href="mailto:cmdelatorre@gmail.com">
+                                <i class="icon-envelope"></i> Contact
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 

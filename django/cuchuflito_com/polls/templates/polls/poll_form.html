@@ -10,17 +10,20 @@
           class="form-horizontal">
         {% csrf_token %}
         <div class="control-group">
-            {{ form.question.errors }}
+            {% include "polls/errors_widget.html" with errors=form.question.errors %}
             <label for="id_question" class="control-label">Question </label>
             {{ form.question }}
-        </div>
-
-        <div class="control-group">
             {{ form.pub_date.errors }}
-            <label for="id_pub_date" class="control-label">pub_date </label>
+            <!--{{ form.pub_date }}-->
+            <input id="id_pub_date" type="hidden" value="2013-02-07 09:41:56.851142" name="pub_date">
+        </div>
+<!--
+        <div class="control-group">
+            {% include "polls/errors_widget.html" with errors=form.pub_date.errors %}
+            <label for="id_pub_date" class="control-label">Date published </label>
             {{ form.pub_date }}
         </div>
-
+-->
         <h4>Choices</h4>
         <div>
             <ul class="nav nav-tabs nav-stacked">
@@ -34,6 +37,7 @@
             </ul>
 
             <p>
+                {% include "polls/errors_widget.html" with errors=form.new_choice.errors %}
                 {{ form.new_choice }}
                 <input type="submit" name="save" value="Add choice" class="btn"></input>
             </p>
