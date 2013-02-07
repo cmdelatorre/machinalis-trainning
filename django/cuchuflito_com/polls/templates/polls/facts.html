@@ -1,0 +1,23 @@
+{% extends "polls/base.html" %}
+{% load url from future %}
+{% load bootstrap_toolkit %}
+{% block content %}
+<div class="hero-unit">
+    <h1>Some useless facts...</h1>
+</div>
+
+{% for fact in facts_list %}
+    <h2>{{ fact.0|safe }}</h2>
+    <ul>
+        {% for poll in fact.1 %}
+
+            <li>
+                <a href="{% url 'polls:results' poll_id=poll.id %}">
+                    {{ poll.question }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endfor %}
+{% endblock %}

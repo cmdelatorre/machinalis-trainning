@@ -22,6 +22,10 @@ class Poll(models.Model):
 	def get_absolute_url(self):
 		return reverse('polls:detail', kwargs={'poll_id': self.id})
 
+	def get_max_votes(self):
+		"""Return the number of votes of the most voted choice."""
+		return self.choice_set.aggregate(max=Max('votes'))['max']
+
 	def has_winners(self):
 		"""Return the choices with more votes than the rest."""
 		voted_choices = self.choice_set.filter(votes__gt=0).order_by('-votes')

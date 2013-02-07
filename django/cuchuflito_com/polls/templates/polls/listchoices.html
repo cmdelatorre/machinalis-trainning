@@ -1,5 +1,6 @@
 {% load url from future %}
 {% load bootstrap_toolkit %}
+{% load poll_tags %}
 
 {% if choices %}
 <table class="table table-striped table-bordered">
@@ -17,7 +18,7 @@
             <tr>
         {% endif %}
             <td>{{ choice.choice }}</td>
-            <td>{{ choice.votes }}</td>
+            <td>{{ choice.votes }} {% barrita choice %}</td>
         </tr>
     {% endfor %}
     <tbody>
