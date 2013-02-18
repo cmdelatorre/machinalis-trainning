@@ -1,0 +1,44 @@
+{% extends "polls/base.html" %}
+{% load url from future %}
+{% load bootstrap_toolkit %}
+{% block content %}
+
+<div class="hero-unit">
+    <h1>
+        <a href="{% url 'polls:edit_poll' poll_id=poll.id %}" title="Click to edit the poll"> 
+            {{ poll.question }}
+        </a><br/>
+        <small>Poll posted on: {{poll.pub_date|date}}</small>
+    </h1>
+</div>
+
+{% if voting_form.choice %}
+
+<form action="{% url 'polls:emit_vote' poll_id=poll.id %}"
+        method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="span6 offset3">
+                {% include "polls/errors_widget.html" with errors=voting_form.choice.errors %}
+                {% for c in voting_form.choice %}
+                    <div class="radio">
+                        {{ c }}
+                    </div>
+                {% endfor %}
+        </div> 
+    </div>
+    <div class="row">
+        <div class="span6 offset3">
+            <input class="btn btn-large btn-primary btn-block" type="submit" value="Vote" />
+            or
+            <a  href="{% url 'polls:results' poll_id=poll.id %}" 
+                class="btn btn-default btn-block"> 
+                See the current results
+            </a>
+        </div>
+    </div>
+</form> 
+
+{%endif%}
+{% endblock %}
+

@@ -4,10 +4,17 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 
+def tznow():
+	return datetime.datetime.now(tz=timezone.get_default_timezone())
+
+
 class Poll(models.Model):
 	"""A poll about cuchuflitos."""
 	question = models.CharField(max_length=200)
-	pub_date = models.DateTimeField("date published", default=datetime.datetime.now)
+	pub_date = models.DateTimeField("date published", default=tznow)
+
+	class Meta:
+		ordering = ['-pub_date']
 
 	def was_published_recently(self):
 		"""Return true if the poll was created from yesterday, afterwards."""
@@ -40,6 +47,11 @@ class Choice(models.Model):
 	poll = models.ForeignKey(Poll) 
 	choice = models.CharField(max_length=200) 
 	votes = models.PositiveIntegerField(default=0)
+
+	class Meta:
+		order_with_respect_to = 'poll'
+		unique_together = [("poll", "choice")]
+		ordering = ['order',]
 
 	def __unicode__(self):
 		return self.choice

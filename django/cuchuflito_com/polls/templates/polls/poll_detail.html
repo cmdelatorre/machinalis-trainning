@@ -1,0 +1,67 @@
+{% extends "polls/base.html" %}
+{% load url from future %}
+{% load bootstrap_toolkit %}
+{% load staticfiles %}
+
+{% block extra_head%}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+{% endblock%}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="hero-unit">
+        <h1>Poll details</h1>
+        
+        {% include "polls/errors_widget.html" with errors=poll_form.question.errors %}
+        <h2>
+            {{ poll_form.question.label_tag }} {{ poll_form.question }}
+        </h2>
+
+        <h2>Choices:<small class="muted"> (drag-and-drop to reorder)</small></h2>       
+        {{ choices_formset.management_form }}
+        <ul id="sortable-choices" >
+        {% for form in choices_formset %}
+            {% include "polls/errors_widget.html" with errors=form.non_field_errors %}
+            {{ form.id }}
+                <li class="choice-item">
+                    {% include "polls/errors_widget.html" with errors=form.choice.errors %}
+                    {{ form.choice }}
+                    {% if choices_formset.can_delete %}
+                        <small class="muted"> {{ form.DELETE }} check to delete on save</small>
+                    {% endif %}
+                    {% if choices_formset.can_order %}
+                        {{ form.ORDER }}
+                    {% endif %}
+                </li>
+        {% endfor %}
+        </ul>
+
+        <div>
+            <button id="add-choice" class="btn btn-default btn-large" type="button">Add choice</button>
+            <button class="btn btn-primary btn-large" type="submit" value="save">Save poll</button>
+        </div>
+    </div>
+</form>
+
+<!-- Template for an empty choice element. -->
+<script type="text/html" id="new-choice-template">
+    <li class="choice-item">
+        <input id="id_choice_set-<%= id %>-choice" type="text" maxlength="200" name="choice_set-<%= id %>-choice">
+        <small class="muted">
+            <input id="id_choice_set-<%= id %>-DELETE" type="checkbox" name="choice_set-<%= id %>-DELETE">
+            check to delete on save
+        </small>
+        <input id="id_choice_set-<%= id %>-ORDER" type="hidden" name="choice_set-<%= id %>-ORDER">
+    </li>
+</script>
+{% endblock %}
+
+{% block extra_scripts%}
+<script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+<script src="{% static 'js/underscore-min.js' %}"></script>
+<script src="{% static 'js/poll-edit-utils.js' %}"></script>
+{% endblock%}
+
+

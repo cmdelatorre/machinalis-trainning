@@ -31,7 +31,7 @@ TIME_ZONE = 'America/Cordoba'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'es-ar'
+LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
 
@@ -115,6 +115,7 @@ TEMPLATE_DIRS = (
 INSTALLED_APPS = (
     'polls',
     'bootstrap_toolkit',
+    'django_nose',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -125,6 +126,10 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+# For the tests results highlighting
+NOSE_ARGS = ['--with-xtraceback'] #['--with-yanc']
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

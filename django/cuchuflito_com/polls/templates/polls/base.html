@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 {% load url from future %}
 {% load bootstrap_toolkit %}
+{% load staticfiles %}
+
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <title>All your Polls</title>
     <meta name="description" content="">
-    <meta name="author" content="Dylan Verheul">
+    <meta name="author" content="Carlos de la Torre">
     {% bootstrap_stylesheet_tag %}
-    <style type="text/css">
-        body {
-            padding-top: 60px;
-        }
-    </style>
-    <!--[if lt IE 9]>
+    <link rel="stylesheet" href="{% static 'css/base-style.css' %}">
+    <!--
+    [if lt IE 9]>
     <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    
     {% bootstrap_javascript_tag %}
-    {% block extra_head %}{% endblock %}
+    {% block extra_head %}
+        <!-- Place to load extra headers. -->
+    {% endblock %}
 </head>
 
 <body>
@@ -72,6 +74,10 @@
 
     {% block content %}
         Empty doc.
+    {% endblock %}
+
+    {% block extra_scripts %}
+        <!-- Place to load JS scripts. -->
     {% endblock %}
 
     <p><hr></p>

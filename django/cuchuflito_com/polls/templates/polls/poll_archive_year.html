@@ -10,7 +10,7 @@
                 ({{ poll.pub_date|date:"F j, Y" }})
             </small>
             <small>
-            <a href="{% url 'polls:detail' poll_id=poll.id %}">Vote</a> | 
+            <a href="{% url 'polls:voting' poll_id=poll.id %}">Vote</a> | 
             <a href="{% url 'polls:results' poll_id=poll.id %}">View results</a>
             </small>
         </p>
