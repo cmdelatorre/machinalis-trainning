@@ -4,12 +4,7 @@
 {% block content %}
 
 <div class="hero-unit">
-    <h1>
-        <a href="{% url 'polls:edit_poll' poll_id=poll.id %}" title="Click to edit the poll"> 
-            {{ poll.question }}
-        </a><br/>
-        <small>Poll posted on: {{poll.pub_date|date}}</small>
-    </h1>
+{% include "polls/poll_heading_snippet.html" %}
 </div>
 
 {% if voting_form.choice %}

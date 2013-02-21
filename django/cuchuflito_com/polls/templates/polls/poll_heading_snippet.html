@@ -1,0 +1,14 @@
+{% load bootstrap_toolkit %}
+{% load poll_tags %}
+
+<h1>
+    {% edit_link_if_autorized user poll %}
+    <small>Poll posted on: {{poll.pub_date|date}}</small><br/>
+    <small>Created by
+    {% if user == poll.created_by %}
+        you
+    {% else %}
+        : {{poll.created_by.get_full_name|default:poll.created_by}}
+    {% endif %}
+    </small>
+</h1>

@@ -53,7 +53,7 @@
             <input id="id_choice_set-<%= id %>-DELETE" type="checkbox" name="choice_set-<%= id %>-DELETE">
             check to delete on save
         </small>
-        <input id="id_choice_set-<%= id %>-ORDER" type="hidden" name="choice_set-<%= id %>-ORDER">
+        <input id="id_choice_set-<%= id %>-ORDER" type="hidden" name="choice_set-<%= id %>-ORDER" value="<%= id+1 %>">
     </li>
 </script>
 {% endblock %}

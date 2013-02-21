@@ -64,11 +64,9 @@ class BaseChoiceFormSet(BaseInlineFormSet):
 
     def save(self, commit=True):
         super(BaseChoiceFormSet, self).save(commit=commit)
-        for form in self.ordered_forms:
-            choice = form.cleaned_data['id']
-            if choice:
-                choice._order = form.cleaned_data['ORDER']
-                choice.save()
+        for choice, order in [(f.instance, f.cleaned_data['ORDER']) for f in self.ordered_forms]:
+            choice._order = order
+            choice.save()
 
 
 ChoiceFormSet = inlineformset_factory(

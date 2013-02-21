@@ -2,66 +2,57 @@
 import datetime
 
 from django.shortcuts import get_object_or_404, render, redirect, render_to_response
-from django.http import HttpResponseNotAllowed, Http404
+from django.http import Http404
+from django.core.exceptions import PermissionDenied
 from django.template import RequestContext
-from django.views.generic import ListView, DetailView, FormView, CreateView
+from django.template.response import TemplateResponse
+from django.views.generic import ListView, DetailView, FormView
 from django.views.generic.dates import ArchiveIndexView, YearArchiveView
-from django.db.models import Avg, Max, Count, Sum, Q
+from django.db.models import Avg, Max, Sum, Q, F
+from django.contrib.auth.decorators import login_required, permission_required
+from django.utils.decorators import method_decorator
 
 from polls.models import Poll, Choice
 from polls.forms import VoteForm, PollDetailForm, ChoiceFormSet
 
-NPOLLSININDEX = 4
+
+# Pagination for year-view: number of polls to show per page.
 NPOLLSINPAGE = 10
 
-def new_poll(request):
-    if request.method == "GET":
-        response = render_to_response(
-                "polls/poll_detail.html", 
-                {"poll_form":PollDetailForm(), "choices_formset":ChoiceFormSet()},
-                RequestContext(request)
-            )
-    elif request.method == "POST":
-        poll_form = PollDetailForm(request.POST)
-        choices_formset = ChoiceFormSet(request.POST, request.FILES)
-        if poll_form.is_valid() and choices_formset.is_valid():
-            poll = poll_form.save()
-            ChoiceFormSet(request.POST, request.FILES, instance=poll).save()
-            response = redirect('polls:voting', poll_id=poll.pk)
-        else:
-            response = render_to_response(
-                "polls/poll_detail.html", 
-                {"poll_form":poll_form, "choices_formset":choices_formset},
-                RequestContext(request)
-                )
-    return response
-
-def edit_poll(request, poll_id):
-    poll = get_object_or_404(Poll, pk=poll_id)
+@login_required
+def edit_poll(request, poll_id=None):
+    poll = None
+    if poll_id:
+        poll = get_object_or_404(Poll, pk=poll_id)
+        if poll.created_by_id != request.user.id:
+            raise PermissionDenied
 
     if request.method == "POST":
         poll_form = PollDetailForm(request.POST, instance=poll)
         choices_formset = ChoiceFormSet(request.POST, request.FILES, instance=poll)
-
-        if poll_form.is_valid() and choices_formset.is_valid():
-            poll_form.save()
-            choices_formset.save()
-            return redirect('polls:voting', poll_id=poll.pk)
-        else:
-            context = {
-                    "poll_form" : poll_form,
-                    "choices_formset" : choices_formset,
-                }
+        if poll_form.is_valid():
+            poll = poll_form.save(commit=False)
+            if not poll.created_by_id:
+                poll.created_by_id = request.user.pk
+            choices_formset = ChoiceFormSet(request.POST, request.FILES, instance=poll)
+            if  choices_formset.is_valid():
+                poll.save()
+                choices_formset.save()
+                return redirect('polls:voting', poll_id=poll.pk)
+        context = {
+                "poll_form" : poll_form,
+                "choices_formset" : choices_formset,
+            }
     else:
         context = {
                 "poll_form" : PollDetailForm(instance=poll),
                 "choices_formset" : ChoiceFormSet(instance=poll),
             }
-
-    return render_to_response(
+    #
+    return TemplateResponse(
+            request,
             "polls/poll_detail.html", 
-            context, 
-            RequestContext(request)
+            context
         )
 
 
@@ -91,7 +82,7 @@ class PollVote(FormView):
 
     def form_valid(self, form):
         choice = form.cleaned_data['choice']
-        choice.votes += 1
+        choice.vote_me()
         choice.save()
         return redirect('polls:results', poll_id=self.poll.pk)
 
@@ -137,6 +128,10 @@ class FactsView(ListView):
     template_name = "polls/facts.html"
     context_object_name = "facts_list"
 
+    @method_decorator(permission_required('polls.can_view_stats', raise_exception=True))
+    def dispatch(self, *args, **kwargs):
+        return super(FactsView, self).dispatch(*args, **kwargs)
+
     def poll_with_votes(self):
         voted = Poll.objects.annotate(s=Sum('choice__votes')).filter(s__gt=0)
         return ("Polls with votes", voted)
@@ -156,11 +151,11 @@ class FactsView(ListView):
         return ("Poll with more votes <small>(%i votes total)</small>"%poll.s, [poll])
 
     def avg_votes(self):
-        a = Choice.objects.aggregate(a=Avg('votes'))['a']
+        a = Choice.objects.aggregate(a=Avg('votes'))['a'] or 0.0
         return ("Average number of votes <small>(all the choices)</small>: %f"%a, [])
 
     def avg_votes_no_zero(self):
-        a = Choice.objects.filter(votes__gt=0).aggregate(a=Avg('votes'))['a']
+        a = Choice.objects.filter(votes__gt=0).aggregate(a=Avg('votes'))['a'] or 0.0
         return ("Average number of votes <small>(only voted choices)</small>: %f"%a, [])
 
     def useless(self):
@@ -174,14 +169,15 @@ class FactsView(ListView):
 
     def get_queryset(self):
         t1, voted_polls = self.poll_with_votes()
-        return [
-                (t1, voted_polls),
-                self.avg_votes(),
-                self.avg_votes_no_zero(),
-                self.most_voted_choice(),
-                self.poll_with_more_votes(poll_set=voted_polls),
-                self.useless(),
-            ]
+        qs = []
+        if voted_polls:
+            qs = [
+                    (t1, voted_polls),
+                    self.avg_votes(),
+                    self.avg_votes_no_zero(),
+                    self.most_voted_choice(),
+                    self.poll_with_more_votes(poll_set=voted_polls),
+                    self.useless(),
+                ]
+        return qs
         
-
-facts = FactsView.as_view()

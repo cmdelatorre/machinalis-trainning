@@ -127,6 +127,9 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
+LOGIN_URL = '/polls/login/'
+LOGIN_REDIRECT_URL = '/polls/'
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 # For the tests results highlighting
 NOSE_ARGS = ['--with-xtraceback'] #['--with-yanc']

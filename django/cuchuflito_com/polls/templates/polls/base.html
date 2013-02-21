@@ -62,8 +62,14 @@
                         </li>
                     </ul>
                 </li>
-                
             </ul>
+            <div class="navbar-text pull-right">
+                            {% if user.is_authenticated %}
+                                Logged in as {{ user.get_full_name|default:user }} (<a href="{% url 'polls:logout' %}">Log out</a> )
+                            {% else %}
+                                Not logged in (<a href="{% url 'polls:login' %}">Log in</a>)
+                            {% endif %}
+            </div>
         </div>
     </div>
 </div>
