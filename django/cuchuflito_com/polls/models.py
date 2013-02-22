@@ -59,5 +59,6 @@ class Choice(models.Model):
 
     def vote_me(self):
         """Increment in 1 the votes for this choice, and save."""
-        self.votes = F('votes') + 1
+        self.votes += 1
         self.save()
+

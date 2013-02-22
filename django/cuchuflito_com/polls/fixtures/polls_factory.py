@@ -7,7 +7,6 @@ DEFAULT_PASSWORD = "123"
 class UserFactory(factory.Factory):
     FACTORY_FOR = User
     username = factory.Sequence(lambda n: 'user {0}'.format(n))
-    password = DEFAULT_PASSWORD
 
 class PollFactory(factory.Factory):
     FACTORY_FOR = Poll

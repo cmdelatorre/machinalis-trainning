@@ -11,8 +11,10 @@ from django.views.generic.dates import ArchiveIndexView, YearArchiveView
 from django.db.models import Avg, Max, Sum, Q, F
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
+from django.contrib.auth.models import User
 
 from polls.models import Poll, Choice
+
 from polls.forms import VoteForm, PollDetailForm, ChoiceFormSet
 
 
@@ -24,7 +26,7 @@ def edit_poll(request, poll_id=None):
     poll = None
     if poll_id:
         poll = get_object_or_404(Poll, pk=poll_id)
-        if poll.created_by_id != request.user.id:
+        if poll.created_by != request.user:
             raise PermissionDenied
 
     if request.method == "POST":
@@ -32,27 +34,21 @@ def edit_poll(request, poll_id=None):
         choices_formset = ChoiceFormSet(request.POST, request.FILES, instance=poll)
         if poll_form.is_valid():
             poll = poll_form.save(commit=False)
-            if not poll.created_by_id:
-                poll.created_by_id = request.user.pk
+            request.user.poll_set.add(poll)
             choices_formset = ChoiceFormSet(request.POST, request.FILES, instance=poll)
             if  choices_formset.is_valid():
                 poll.save()
                 choices_formset.save()
                 return redirect('polls:voting', poll_id=poll.pk)
-        context = {
-                "poll_form" : poll_form,
-                "choices_formset" : choices_formset,
-            }
+        # Some form is not valid.
     else:
-        context = {
-                "poll_form" : PollDetailForm(instance=poll),
-                "choices_formset" : ChoiceFormSet(instance=poll),
-            }
+        poll_form = PollDetailForm(instance=poll)
+        choices_formset = ChoiceFormSet(instance=poll)
     #
     return TemplateResponse(
             request,
             "polls/poll_detail.html", 
-            context
+            {"poll_form" : poll_form, "choices_formset" : choices_formset}
         )
 
 
