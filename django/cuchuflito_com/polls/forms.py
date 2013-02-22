@@ -22,6 +22,7 @@ class VoteForm(forms.Form):
         self.fields['choice'].queryset = poll.choice_set.all()
 
 
+EMPTY_QUESTION_MSG = u"Question can't be empty."
 class PollDetailForm(forms.ModelForm):
     class Meta:
         model = Poll
@@ -29,7 +30,7 @@ class PollDetailForm(forms.ModelForm):
 
     question = forms.CharField(
             max_length=200,
-            error_messages={'required': u"Question can't be empty."}
+            error_messages={'required': EMPTY_QUESTION_MSG}
         )
 
 

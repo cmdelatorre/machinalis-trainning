@@ -2,11 +2,13 @@
 import datetime
 
 from django.test import TestCase
-from django.utils import timezone
+from django.test.html import parse_html
+from django.utils import timezone, html
 from django.core.urlresolvers import reverse
-from django.test.client import RequestFactory
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotAllowed, Http404, QueryDict
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
+from django.test.client import RequestFactory
 
 
 from polls.models import Poll, Choice
@@ -15,6 +17,102 @@ from fixtures.polls_factory import UserFactory, PollFactory, ChoiceFactory, DEFA
 
 
 request_factory = RequestFactory()
+
+# Auxiliar method
+def aux_initial_management_form(total_forms=1, extra=None):
+    """Creates the formset's management form items."""
+    ret_val = {
+            "choice_set-0-ORDER" : 1,
+            "choice_set-0-choice" : '',
+            "choice_set-0-id" : '',
+            "choice_set-TOTAL_FORMS" : total_forms,
+            "choice_set-INITIAL_FORMS" : 0,
+            "choice_set-MAX_NUM_FORMS" : '',
+        }
+    if extra:
+        ret_val = dict(ret_val, **extra)
+    return ret_val
+
+def formset_management_form(items, extra=None):
+    """Creates the formset's management form items."""
+    n = len(items)
+    form_items = {
+            "choice_set-TOTAL_FORMS" : n,
+            "choice_set-MAX_NUM_FORMS" : '',
+        }
+    initial = 0 #counts the choices with id, meaning they already existed (are not new)
+    for ctr, (choice_id, choice) in enumerate(items):
+        form_items["choice_set-%i-ORDER"%ctr] = ctr
+        form_items["choice_set-%i-choice"%ctr] = choice
+        if choice_id:
+            form_items["choice_set-%i-id"%ctr] = choice_id
+            initial += 1
+    form_items["choice_set-INITIAL_FORMS"] = initial
+
+    ret_val = form_items
+    if extra:
+        ret_val = dict(form_items, **extra)
+    return ret_val
+
+
+class AuxMethodTesting(TestCase):
+    def test_formset_management_form_empty(self):
+        f = formset_management_form([])
+        expected = {
+            'choice_set-INITIAL_FORMS': 0,
+            'choice_set-MAX_NUM_FORMS': '',
+            'choice_set-TOTAL_FORMS': 0
+        }
+        self.assertDictEqual(expected, f)
+
+    def test_formset_management_form_one_with_id(self):
+        f1 = formset_management_form([(9,"A")])
+        expected = {
+            'choice_set-INITIAL_FORMS': 1,
+            'choice_set-MAX_NUM_FORMS': '',
+            'choice_set-TOTAL_FORMS': 1,
+            'choice_set-0-ORDER': 0,
+            'choice_set-0-choice': 'A',
+            'choice_set-0-id': 9,
+        }
+        self.assertDictEqual(expected, f1)
+
+    def test_formset_management_form_id_and_not(self):
+        f2 = formset_management_form([(9,"A"), (None, "B")])
+        expected = {
+            'choice_set-INITIAL_FORMS': 1,
+            'choice_set-MAX_NUM_FORMS': '',
+            'choice_set-TOTAL_FORMS': 2,
+            'choice_set-0-ORDER': 0,
+            'choice_set-0-choice': 'A',
+            'choice_set-0-id': 9,
+            'choice_set-1-ORDER': 1,
+            'choice_set-1-choice': 'B',
+        }
+        self.assertDictEqual(expected, f2)
+
+    def test_formset_management_form_not_ids(self):
+        f2 = formset_management_form([(None,"A"), (None, "B")])
+        expected = {
+            'choice_set-INITIAL_FORMS': 0,
+            'choice_set-MAX_NUM_FORMS': '',
+            'choice_set-TOTAL_FORMS': 2,
+            'choice_set-0-ORDER': 0,
+            'choice_set-0-choice': 'A',
+            'choice_set-1-ORDER': 1,
+            'choice_set-1-choice': 'B',
+        }
+        self.assertDictEqual(expected, f2)
+
+    def test_formset_management_extra_fields(self):
+        f2 = formset_management_form([], extra={'foo':'bar'})
+        expected = {
+            'choice_set-INITIAL_FORMS': 0,
+            'choice_set-MAX_NUM_FORMS': '',
+            'choice_set-TOTAL_FORMS': 0,
+            'foo' : 'bar',
+        }
+        self.assertDictEqual(expected, f2)
 
 class PollsModelTesting(TestCase):
     def setUp(self):
@@ -122,7 +220,7 @@ class YearArchiveViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class NewPollTesting(TestCase):
+class NewPollGETTesting(TestCase):
     def setUp(self):
         self.usr = "usr"
         self.a_user = UserFactory(username=self.usr)
@@ -176,7 +274,7 @@ class NewPollTesting(TestCase):
         self.assertFalse(the_choice_form.is_bound)
 
 
-class EditPollTesting(TestCase):
+class NewPollPOSTTesting(TestCase):
     def setUp(self):
         self.usr = "usr"
         self.a_user = UserFactory(username=self.usr)
@@ -186,28 +284,15 @@ class EditPollTesting(TestCase):
         self.a_question = 'a question?'
         self.a_choice = 'a choice'
 
-
     def tearDown(self):
         """Delete the created Poll instance."""
         self.client.logout()
+        self.a_user.delete()
 
-    def __initial_management_form(self, total_forms=1, extra=None):
-        ret_val = {
-                "choice_set-0-ORDER" : 1,
-                "choice_set-0-choice" : '',
-                "choice_set-0-id" : '',
-                "choice_set-TOTAL_FORMS" : total_forms,
-                "choice_set-INITIAL_FORMS" : 0,
-                "choice_set-MAX_NUM_FORMS" : '',
-            }
-        if extra:
-            ret_val = dict(ret_val, **extra)
-        return ret_val
-
-    def test_valid_new_poll_inserts_one(self):
+    def test_valid_new_poll_inserts_only_one(self):
         """POST to edit_poll with valid data creates ONE new Poll."""
         assert(len(Poll.objects.all()) == 0)
-        valid_data = self.__initial_management_form(extra={
+        valid_data = aux_initial_management_form(extra={
                 'question': self.a_question,
             })
         request = request_factory.post(
@@ -221,7 +306,7 @@ class EditPollTesting(TestCase):
     def test_valid_new_poll_redirects_to_voting(self):
         """POST to edit_poll with valid data. redirects to polls:voting."""
         assert(len(Poll.objects.all()) == 0)
-        valid_data = self.__initial_management_form(extra={'question': self.a_question})
+        valid_data = aux_initial_management_form(extra={'question': self.a_question})
         response = self.client.post(reverse('polls:new_poll'), data = valid_data)
         self.assertRedirects(
                 response, 
@@ -230,7 +315,7 @@ class EditPollTesting(TestCase):
 
     def test_valid_new_poll_inserts_correct_question(self):
         """POST to edit_poll with valid data creates the correct Poll."""
-        valid_data = self.__initial_management_form(extra={
+        valid_data = aux_initial_management_form(extra={
                 'question': self.a_question,
             })
         request = request_factory.post(
@@ -244,7 +329,7 @@ class EditPollTesting(TestCase):
     def test_valid_new_poll_inserts_correct_choices(self):
         """POST to edit_poll with valid data creates the correct Choices."""
         choices_values = ['a', 'b', 'c', 'd']
-        valid_data = self.__initial_management_form(total_forms=4, extra={
+        valid_data = aux_initial_management_form(total_forms=4, extra={
                 'question': self.a_question,
                 "choice_set-0-ORDER" :  1,
                 "choice_set-0-choice" : choices_values[0],
@@ -264,11 +349,138 @@ class EditPollTesting(TestCase):
         db_values = [d.choice for d in Choice.objects.all()]
         self.assertItemsEqual(choices_values, db_values)
 
+    def test_new_poll_empty_question_fails(self):
+        """POST to edit_poll with an empty question, results in an invalid form."""
+        assert(len(Poll.objects.all()) == 0)
+        # No extra data (such as the 'question' value)
+        invalid_data = aux_initial_management_form()
+        response = self.client.post(reverse('polls:new_poll'), data = invalid_data)
+        self.assertFalse(response.context['poll_form'].is_valid())
+
+    def test_new_poll_empty_question_shows_specific_message(self):
+        """POST to edit_poll with an empty question, renders a specific msg"""
+        # No extra data (such as the 'question' value)
+        invalid_data = aux_initial_management_form()
+        request = request_factory.post(
+                reverse('polls:new_poll'),
+                data = invalid_data,
+            )
+        request.user = self.a_user
+        response = views.edit_poll(request)
+        response.render()
+        self.assertContains(response, html.escape(forms.EMPTY_QUESTION_MSG))
+
+    def test_new_poll_duplicated_choices_fail(self):
+        """POST to edit_poll with an empty question, renders a specific msg"""
+        # No extra data (such as the 'question' value)
+        choices_values = ['a', 'a']
+        invalid_data = aux_initial_management_form(total_forms=2, extra={
+                'question': self.a_question,
+                "choice_set-0-ORDER" :  1,
+                "choice_set-0-choice" : choices_values[0],
+                "choice_set-1-ORDER" :  2,
+                "choice_set-1-choice" : choices_values[1],
+            })
+        response = self.client.post(reverse('polls:new_poll'), data = invalid_data)
+        self.assertFalse(response.context['choices_formset'].is_valid())
 
 
 
+class EditPollTesting(TestCase):
+    def setUp(self):
+        self.usr = "usr"
+        self.a_user = UserFactory(username=self.usr)
+        self.a_user.set_password(DEFAULT_PASSWORD)
+        self.a_user.save()
+        self.client.login(username=self.usr, password=DEFAULT_PASSWORD)
+        self.a_question = 'a question?'
+        self.poll = self.a_user.poll_set.create(question=self.a_question)
+        self.a_choice = 'a choice'
+        self.choice = self.poll.choice_set.create(choice=self.a_choice)
 
-class PollsDetailViewTestCase(TestCase):
+    def tearDown(self):
+        """Delete the created Poll instance."""
+        self.client.logout()
+        User.objects.all().delete() # Borra su poll y la choice
+
+    def test_edit_poll_not_authenticated_redirects_to_login(self):
+        """Not authenticated users trying edit_poll, must be redirected to login page."""
+        self.client.logout() # Make sure it's not logged-in
+        original = reverse('polls:edit_poll', kwargs={'poll_id':self.poll.id})
+        response = self.client.post(original)
+        destiny = "%s?next=%s"%(reverse('polls:login'), original)
+        self.assertRedirects(response, destiny)
+
+    def test_edit_not_owned_poll_fails(self):
+        """An authenticated user cannot edit polls owned by someone else."""
+        assert(self.a_user.is_authenticated())
+        another_user = UserFactory(username="someone else")
+        another_user.set_password(DEFAULT_PASSWORD)
+        another_user.save()
+        alien_poll = another_user.poll_set.create(question="whatever")
+        # The logged in user tries to edit the alien_poll
+        request = request_factory.post(
+                reverse('polls:edit_poll', kwargs={'poll_id':alien_poll.id}),
+            )
+        request.user = self.a_user
+        with self.assertRaises(PermissionDenied):
+            response = views.edit_poll(request, poll_id=alien_poll.id)
+
+    def test_edit_poll_empty_question_shows_specific_message(self):
+        """Try to edit_poll with an empty question, renders a specific msg"""
+        # No extra data (such as the 'question' value)
+        invalid_data = aux_initial_management_form()
+        request = request_factory.post(
+                reverse('polls:edit_poll', kwargs={'poll_id':self.poll.id}),
+                data = invalid_data,
+            )
+        request.user = self.a_user
+        response = views.edit_poll(request)
+        response.render()
+        self.assertContains(response, html.escape(forms.EMPTY_QUESTION_MSG))
+
+    def test_edit_poll_with_duplicated_choices_fail(self):
+        """POST to /<id>/edit_poll with duplicated choices, invalids formset."""
+        # No extra data (such as the 'question' value)
+        choices_values = ['a', 'a']
+        invalid_data = aux_initial_management_form(total_forms=2, extra={
+                'question': self.a_question,
+                "choice_set-0-ORDER" :  1,
+                "choice_set-0-choice" : choices_values[0],
+                "choice_set-1-ORDER" :  2,
+                "choice_set-1-choice" : choices_values[1],
+            })
+        response = self.client.post(
+                reverse('polls:edit_poll', kwargs={'poll_id':self.poll.id}),
+                data = invalid_data
+            )
+        self.assertFalse(response.context['choices_formset'].is_valid())
+
+    def test_edit_poll_choices_strip(self):
+        """Choices value is stripped (no starting spaces)."""
+        # No extra data (such as the 'question' value)
+        extra = {'question': self.a_question}
+        # List of tuples: (choice_id, choice) where choice_id can be None
+        choices_values =  [
+                (1   , u'   a   '), 
+                (None, u'\t b \t'), 
+                (None, u'\n c \n')
+            ]
+        valid_data = formset_management_form(choices_values, extra=extra)
+        #print valid_data
+        request = request_factory.post(
+                reverse('polls:edit_poll', kwargs={'poll_id':self.poll.id}),
+                data = valid_data,
+            )
+        request.user = self.a_user
+        response = views.edit_poll(request, poll_id=self.poll.id)
+        choices = Choice.objects.all()
+        for i in range(len(choices_values)):
+            self.assertEqual(choices[i].choice, choices_values[i][1].strip())
+
+
+
+class VotingFormTesting(TestCase):
     def setUp(self):
         self.poll = PollFactory()
 
