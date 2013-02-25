@@ -9,7 +9,8 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotAllowed, Http404, QueryDict
 from django.contrib.auth.models import AnonymousUser, User
 from django.test.client import RequestFactory
-
+from django.db import IntegrityError
+from mock import patch
 
 from polls.models import Poll, Choice
 from polls import views, forms
@@ -166,6 +167,33 @@ class PollsModelTesting(TestCase):
         looser.vote_me()
         self.assertItemsEqual(self.poll.has_winners(), [winner_2, winner_1])
 
+
+class ChoiceModelTesting(TestCase):
+    def setUp(self):
+        self.choice = ChoiceFactory()
+
+    def test_vote_me_adds_1_vote(self):
+        """The Choice.vote_me method adds exactly 1 to the votes of the instance."""
+        assert(self.choice.votes == 0)
+        self.choice.vote_me()
+        self.assertEqual(self.choice.votes, 1)
+        self.choice.delete()
+
+    def test_vote_me_saves_results(self):
+        """The Choice.vote_me method updates the DB (not only the object instance)"""
+        assert(self.choice.votes == 0)
+        self.choice.vote_me()
+        pk = self.choice.pk
+        del(self.choice) # Obj removed just to be extreme and show the votes value comes from the DB.
+        self.assertEqual(Choice.objects.get(pk=pk).votes, 1)
+
+    def test_vote_me_work_only_on_DB_saved_instances(self):
+        """The Choice.vote_me method works only on saved objects."""
+        c = Choice()
+        self.assertRaises(IntegrityError, c.vote_me)
+        
+
+
 class PollsIndexViewsTestCase(TestCase):
     def setUp(self):
         self.poll = PollFactory()
@@ -268,10 +296,6 @@ class NewPollGETTesting(TestCase):
         the_choice_form = self.__get_new_poll_choices_forms()[0]
         self.assertFalse(the_choice_form.is_bound)
 
-    def test_new_poll_empty_question_shows_form_error(self):
-        """When posting edit_poll, the InlineChoiceForm is unbound."""
-        the_choice_form = self.__get_new_poll_choices_forms()[0]
-        self.assertFalse(the_choice_form.is_bound)
 
 
 class NewPollPOSTTesting(TestCase):
@@ -301,7 +325,7 @@ class NewPollPOSTTesting(TestCase):
             )
         request.user = self.a_user
         response = views.edit_poll(request)
-        self.assertEqual(len(Poll.objects.all()), 1)
+        self.assertEqual(Poll.objects.all().count(), 1)
 
     def test_valid_new_poll_redirects_to_voting(self):
         """POST to edit_poll with valid data. redirects to polls:voting."""
@@ -351,7 +375,7 @@ class NewPollPOSTTesting(TestCase):
 
     def test_new_poll_empty_question_fails(self):
         """POST to edit_poll with an empty question, results in an invalid form."""
-        assert(len(Poll.objects.all()) == 0)
+        assert(Poll.objects.all().count() == 0)
         # No extra data (such as the 'question' value)
         invalid_data = aux_initial_management_form()
         response = self.client.post(reverse('polls:new_poll'), data = invalid_data)
@@ -369,6 +393,15 @@ class NewPollPOSTTesting(TestCase):
         response = views.edit_poll(request)
         response.render()
         self.assertContains(response, html.escape(forms.EMPTY_QUESTION_MSG))
+
+    def test_new_poll_empty_question_dont_inserts_in_DB(self):
+        """POST to edit_poll with an empty question, does not insert a new poll in the DB."""
+        assert(len(Poll.objects.all()) == 0)
+        # No extra data (such as the 'question' value)
+        invalid_data = aux_initial_management_form()
+        response = self.client.post(reverse('polls:new_poll'), data = invalid_data)
+        self.assertEqual(Poll.objects.all().count(), 0)
+        
 
     def test_new_poll_duplicated_choices_fail(self):
         """POST to edit_poll with an empty question, renders a specific msg"""
@@ -460,12 +493,13 @@ class EditPollTesting(TestCase):
         """Choices value is stripped (no starting spaces)."""
         # No extra data (such as the 'question' value)
         extra = {'question': self.a_question}
-        # List of tuples: (choice_id, choice) where choice_id can be None
-        choices_values =  [
+        choices_values =  [ 
+                #(choice id, user given value)
                 (1   , u'   a   '), 
                 (None, u'\t b \t'), 
                 (None, u'\n c \n')
             ]
+        desired_values = map(unicode.strip, [c for (i,c) in choices_values])
         valid_data = formset_management_form(choices_values, extra=extra)
         #print valid_data
         request = request_factory.post(
@@ -474,9 +508,8 @@ class EditPollTesting(TestCase):
             )
         request.user = self.a_user
         response = views.edit_poll(request, poll_id=self.poll.id)
-        choices = Choice.objects.all()
-        for i in range(len(choices_values)):
-            self.assertEqual(choices[i].choice, choices_values[i][1].strip())
+        for i, db_choice in enumerate(Choice.objects.all()):
+            self.assertEqual(db_choice.choice, desired_values[i])
 
 
 
@@ -501,7 +534,7 @@ class VotingFormTesting(TestCase):
             )
 
 
-class PollsVoteTestCase(TestCase):
+class PollVoteTesting(TestCase):
     def setUp(self):
         self.poll = PollFactory()
         self.c1 = ChoiceFactory(poll=self.poll)
@@ -511,17 +544,18 @@ class PollsVoteTestCase(TestCase):
         """Delete the created Poll instance."""
         self.poll.delete()
 
-    def test_vote_ok(self):
-        """Voting an existing choice adds 1 to its votes."""
-        original_n_votes = self.c1.votes
-        data = {'choice':self.c1.id}
+    def test_vote_calls_choice_vote_me(self):
+        """polls:emit_vote calls the right Choice vote_me method."""
         request = request_factory.post(
                 reverse('polls:emit_vote', kwargs={'poll_id':self.poll.id}),
-                data = data
+                data = {'choice':self.c1.id}
             )
-        response = views.PollVote.as_view()(request, poll_id = self.poll.id)
-        modified_n_votes = Choice.objects.get(pk=self.c1.pk).votes
-        self.assertEqual(modified_n_votes, original_n_votes + 1)
+        with patch.object(Choice, 'vote_me', autospec=True) as mock_vote_me:
+            mock_vote_me.return_value = None
+            response = views.PollVote.as_view()(request, poll_id = self.poll.id)
+            args, kwargs = mock_vote_me.call_args_list[0]
+            target_choice = args[0]
+            self.assertEqual(target_choice.id, self.c1.id)
 
     def test_vote_redirects_ok(self):
         """Succesful voting redirects to results page."""
