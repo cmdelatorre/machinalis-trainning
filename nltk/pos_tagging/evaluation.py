@@ -32,7 +32,6 @@ def tagger_kfold(dataset, tagger_factory, k=10):
     for i in xrange(k):
         train = [x for j, x in enumerate(dataset) if j % k != i]
         test = [x for j, x in enumerate(dataset) if j % k == i]
-        print hit, miss
         tagger = tagger_factory(train)
         for goldsent in test[:10]:
             testsent = tagger.tag([word for word, _ in goldsent])

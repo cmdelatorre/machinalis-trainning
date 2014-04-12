@@ -1,73 +1,83 @@
-import nltk
+from collections import defaultdict, Counter
+from itertools import chain
+from nltk.metrics.distance import edit_distance
+
+from baselines import MajorityTagger
 
 
-class AbstractTagger(object):
-    """Interface definition for POS-Tagger classes."""
-    
-    def train(self, train_sample):
-        """
-        train_sample is a list of tagged sentences.
-        Each sentence is a list of tagged words (tuples).
-        
-        """
-        pass
-    
-    def tag(self, text):
-        pass
-    
-    @staticmethod
-    def taged_words_in_sample(train_sample, limit=None):
-        dataset = limit and train_sample[:limit] or train_sample
-        return reduce(lambda x, y: x+y, dataset, [])
-    
-    def tags_in_samples(self, train_sample, limit=None):
-        dataset = limit and train_sample[:limit] or train_sample
-        return [tag for (word, tag) in self.taged_words_in_sample(train_sample,
-                                                                  limit=limit)]
-    
-    def words_in_samples(self, train_sample, limit=None):
-        dataset = limit and train_sample[:limit] or train_sample
-        return [word for (word, tag) in self.taged_words_in_sample(train_sample,
-                                                                  limit=limit)]
-    
-class DefaultTagger(AbstractTagger):
-    
-    def train(self, train_sample):
-        tags = self.tags_in_samples(train_sample, limit=2000)
-        print len(tags)
-        self.most_frequent_tag = nltk.FreqDist(tags).max()
-        self.default_tagger = nltk.DefaultTagger(self.most_frequent_tag)
-        print 'most_frequent_tag', self.most_frequent_tag
-    
-    def tag(self, sentence):
-        return self.default_tagger.tag(sentence)
+SUFFIX_LEN = -3  # To be used to define a word's suffix.
+SUFFIX_WORD_LEN_THRESHOLD = 5  # Min length of a word to be taken into account for suffix computation.
+SUFFIX_SINGLE_TAG_MIN_FREQ = 5
+WORD_DISTANCE_THRESHOLD = 2
 
+def get_suffix(word):
+    return word[SUFFIX_LEN:]
 
-class LookupTagger(AbstractTagger):
-            
-    def train(self, train_sample):
-        words_frequency = nltk.FreqDist(self.words_in_samples(train_sample))
-        cfd = nltk.ConditionalFreqDist(self.taged_words_in_sample(train_sample))
-        most_freq_words = words_frequency.keys()[:100]
-        likely_tags = dict((word, cfd[word].max()) for word in most_freq_words)
-        self.baseline_tagger = nltk.UnigramTagger(model=likely_tags)
-        
-    def tag(self, text):
-        return self.baseline_tagger.tag(text)
+class BySuffixTagger(object):
+    delta = 3
+    def __init__(self, train):
+        """Those suffixes with """
+        tags_per_suffix = defaultdict(list)
+        for word, tag in chain(*train):
+            if len(word) >= SUFFIX_WORD_LEN_THRESHOLD:
+                tags_per_suffix[get_suffix(word)].append(tag)
 
+        self.tags = defaultdict(lambda: None)
+        for suffix, xs in tags_per_suffix.iteritems():
+            freq = Counter(xs)
+            tags_ranking = sorted([(v,k) for k,v in freq.items()], reverse=True)
+            if len(tags_ranking) < 2:
+                # The suffix is always related to the same tag, with frequence f
+                f, tag = tags_ranking[0]
+                if f > SUFFIX_SINGLE_TAG_MIN_FREQ:
+                    self.tags[suffix] = tag
+                continue
+            (max_n, max_tag), (snd_n, snd_tag) = tags_ranking[:2]
+            if max_n > self.delta*snd_n:
+                # The most common tag is 3 times more common than the next
+                self.tags[suffix] = max_tag
 
-def tagger_factory(train_sample):
-    """"""
-    tagger = LookupTagger()
-    tagger.train(train_sample)
-    return tagger
+    def tag(self, words):
+        return [(word, self.tags[get_suffix(word)]) for word in words]
 
-
-if __name__ == '__main__':
-    from nltk.corpus import brown
-    from evaluation import evaluate_tagger, _my_brown
-    global _my_brown
     
-    _my_brown = brown.tagged_sents(categories='humor')
-    r = evaluate_tagger(tagger_factory)
-    print r
+class CarlitoxTagger(object):
+    """
+    Based on the MemorizerTagger. Instead of using MajorityTagger as default
+    (for unknown words), use a custom one.
+    
+    """
+    def __init__(self, train):
+        self.majority_tagger = MajorityTagger(train)
+        self.suffix_tagger = BySuffixTagger(train)
+        self.wordset = set()
+        #
+        tags_per_word = defaultdict(list)
+        for word, tag in chain(*train):
+            self.wordset.add(word)
+            tags_per_word[word].append(tag)
+        self.tags = defaultdict(lambda: None)
+        for word, xs in tags_per_word.iteritems():
+            freq = defaultdict(int)
+            for tag in xs:
+                freq[tag] += 1
+            self.tags[word] = max(freq, key=freq.get)
+
+    def tag(self, words):
+        return [(word, self.choose_tagger(word)) for word in words]
+
+    def choose_tagger(self, word):
+        tag = self.tags[word]
+        if tag is None:
+            tag = self.suffix_tagger.tags[get_suffix(word)]
+            if tag is None:
+                # Try and use the tag of the most similar word.
+                distances = {w: edit_distance(word, w) for w in self.wordset}
+                distances = sorted([(distance, w) for w, distance
+                                    in distances.items()])
+                d, closer_word = distances[0]
+                if d <= WORD_DISTANCE_THRESHOLD:
+                    tag = self.tags[closer_word]
+                else: 
+                    tag = self.majority_tagger.best
+        return tag
