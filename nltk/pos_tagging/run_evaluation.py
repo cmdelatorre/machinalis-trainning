@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from baselines import MajorityTagger, MemorizerTagger, NLTKBiGramsWithBackoff
 from evaluation import evaluate_tagger
-from postagging import CarlitoxTagger
+from postagging import CarlitoxTagger, ByContextTagger
 
 class TaggerAPI(object):
     def __init__(self, train):
@@ -19,8 +19,9 @@ class TaggerAPI(object):
 
 taggers = [
     #MajorityTagger,
-    #MemorizerTagger,
-    CarlitoxTagger,
+    MemorizerTagger,
+    #CarlitoxTagger,
+    ByContextTagger
     ]
 
 
